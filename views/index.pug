@@ -1,0 +1,9 @@
+extends layout
+
+block content
+  h1= title
+  each mes in messages
+    ul 
+      li= mes.text
+      li= mes.user
+      li= mes.added
