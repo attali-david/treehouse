@@ -1,6 +1,9 @@
 var express = require('express');
 var router = express.Router();
 
+const user_controller = require('../controllers/userController')
+const message_controller = require('../controllers/messageController')
+
 const messages = [
   {
     text: 'Hi there!',
@@ -15,21 +18,26 @@ const messages = [
 ]
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Messageboard', messages: messages });
-});
+router.get('/', message_controller.index_get)
 
-router.get('/new', (req, res, next) => {
-  res.render('form')
+//  login page
+router.get('/login', function(req, res, next) {
+  res.render('login_form')
 })
+router.post('/login', user_controller.login_post)
 
-router.post('/new', (req, res, next) => {
-  try{
-    messages.push({text: req.body.text, user: req.body.user, added: new Date()})
-    res.redirect('/')
-  } catch {
-    console.log(error)
-  }  
+
+//  register page
+router.get('/register', function(req, res, next) {
+  res.render('register_form')
 })
+router.post('/register', user_controller.register_post)
+
+// profile
+router.get('/profile', user_controller.profile_get)
+router.post('/code', user_controller.code_post)
+router.post('/admincode', user_controller.admincode_post)
+router.post('/message', message_controller.message_post)
+router.post('/delete-message', user_controller.delete_message)
 
 module.exports = router;

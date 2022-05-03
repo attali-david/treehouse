@@ -1,0 +1,119 @@
+const User = require('../models/user')
+const Message = require('../models/message')
+const async = require('async')
+const {body, validationResult} = require('express-validator')
+const e = require('express')
+const bcrypt = require('bcrypt')
+const passport = require('passport')
+
+exports.register_post = [
+    body('username').trim().isLength({min:3, max:20}).escape().withMessage('Username must be between 3 and 20 characters')
+        .isAlphanumeric().withMessage('Username cannot have special characters'),
+    body('email').isEmail().withMessage('Valid email required'),
+    body('password').trim().isLength({min:5}).escape().withMessage('Password must be at least 5 characters long'),
+    body('rpassword').custom((rpassword, { req }) => {
+            if (rpassword !== req.body.password) {
+                return false
+            } else {
+                return true
+            }
+        }).withMessage('Passwords must match'),
+    body('avatar', "There's a problem on our end with the avatar"), 
+
+    (req, res, next) => {
+        const errors = validationResult(req)
+        if(!errors.isEmpty()) {
+            res.render('register_form', {username: req.body.username, email: req.body.email, errors: errors.array()})
+            return
+        } else {
+            bcrypt.hash(req.body.password, 10, (err, hash) => {
+                    if(err) next(err)
+                    let user = new User({
+                        username: req.body.username,
+                        email: req.body.email,
+                        password: hash,
+                        avatar: req.body.avatar || 1
+                }).save(err => {
+                    if(err) return next(err)
+                    res.redirect('/')
+                })            
+            })
+            res.render('login_form', {registered: true})
+        }
+    }
+]
+
+exports.login_post = [
+    passport.authenticate('local', {successRedirect: '/', failureRedirect: '/login'})
+]
+
+exports.profile_get = [
+    (req, res, next) => {
+        async.parallel({
+            messages: function(callback) {
+                Message.find({user: req.user._id})
+                    .exec(callback)
+            }
+        }, function(err, results) {
+            console.log(results.messages)
+            res.render('profile', {messages: results.messages})
+        })
+    }
+]
+
+exports.code_post = [
+    body('code').trim().escape(),
+
+    (req, res, next) => {
+        const errors = validationResult(req)
+        if(!errors.isEmpty()) {
+            res.render('/profile', {error: errors.array})
+            return
+        } else {
+            if(req.body.code === process.env.IS_MEMBER) {
+                User.findByIdAndUpdate(req.user._id, {isMember: true}, function (err, next) {
+                    if(err) return next(err)
+                    
+                })
+                res.redirect('/profile')
+            }
+        }
+    }
+]
+
+exports.admincode_post = [
+    body('admincode').trim().escape(),
+
+    (req, res, next) => {
+        const errors = validationResult(req)
+        if(!errors.isEmpty()) {
+            res.render('/profile', {error: errors.array})
+            return
+        } else {
+            if(req.body.admincode === process.env.IS_ADMIN) {
+                User.findByIdAndUpdate(req.user._id, {isAdmin: true}, function(err, next) {
+                    if(err) return next(err)
+                })
+                res.redirect('/profile')
+            }
+        }
+    }
+]
+
+exports.delete_message = [
+    (req, res, next) => {
+        async.parallel({
+            n: function(callback) {
+                Message.findByIdAndDelete(req.body.targetMessage)
+                .exec(callback)
+            },
+            messages: function(callback) {
+                Message.find({})
+                    .exec(callback)
+            }
+        }, function(err, results) {
+            if(err) return next(err)
+            res.render('profile', { messages: results.messages })
+        })
+    }
+]
