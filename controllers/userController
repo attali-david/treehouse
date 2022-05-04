@@ -44,7 +44,7 @@ exports.register_post = [
 ]
 
 exports.login_post = [
-    passport.authenticate('local', {successRedirect: '/', failureRedirect: '/login'})
+   passport.authenticate('local', {successRedirect: '/', failureRedirect: '/login'})
 ]
 
 exports.profile_get = [
@@ -135,5 +135,16 @@ exports.logout = [
     }
 ]
 
-
-
+exports.delete_account = [
+    (req, res, next) => {
+        async.parallel({
+            function(callback) {
+                User.findByIdAndDelete(req.user._id)
+                    .exec(callback)
+            } 
+        }, function(err, results) {
+            if(err) return next(err)
+            else res.redirect('/')
+        })
+    }
+]

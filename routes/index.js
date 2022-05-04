@@ -29,5 +29,6 @@ router.post('/admincode', user_controller.admincode_post)
 router.post('/message', message_controller.message_post)
 router.post('/delete-message', user_controller.delete_message)
 router.post('/logout', user_controller.logout)
+router.post('/delete-account', user_controller.delete_account)
 
 module.exports = router;
