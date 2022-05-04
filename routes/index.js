@@ -4,21 +4,10 @@ var router = express.Router();
 const user_controller = require('../controllers/userController')
 const message_controller = require('../controllers/messageController')
 
-const messages = [
-  {
-    text: 'Hi there!',
-    user: "Amanda",
-    added: new Date()
-  },
-  {
-    text: 'Hello World!',
-    user: 'Charles',
-    added: new Date()
-  }
-]
 
 /* GET home page. */
 router.get('/', message_controller.index_get)
+router.post('/delete-message-admin', message_controller.admin_delete)
 
 //  login page
 router.get('/login', function(req, res, next) {
@@ -39,5 +28,6 @@ router.post('/code', user_controller.code_post)
 router.post('/admincode', user_controller.admincode_post)
 router.post('/message', message_controller.message_post)
 router.post('/delete-message', user_controller.delete_message)
+router.post('/logout', user_controller.logout)
 
 module.exports = router;

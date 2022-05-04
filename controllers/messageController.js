@@ -53,3 +53,24 @@ exports.message_post = [
         })
     }
 ]
+
+exports.admin_delete = [
+    (req, res, next) => {
+        if(!!req.user.isAdmin) {
+            async.parallel({
+                function(callback) {
+                    Message.findByIdAndDelete(targetMessage)
+                        .exec(callback)
+                }
+            }, function(err) {
+                if(err) return next(err)
+                else {
+                    res.redirect('/')
+                }
+            })
+        } else {
+            // FIX: THROW 403 ERROR
+            res.redirect('/')
+        }
+    }
+]

@@ -117,3 +117,23 @@ exports.delete_message = [
         })
     }
 ]
+
+exports.logout = [
+    (req, res, next) => {
+        async.parallel({
+            messages: function(callback) {
+                Message.find({})
+                    .exec(callback)
+            }
+        }, function(err, results) {
+            if(err) next(err)
+            else {
+                res.logout()
+                res.render('index', {title: 'Treehouse', messages: results.messages})
+            }
+        })
+    }
+]
+
+
+
